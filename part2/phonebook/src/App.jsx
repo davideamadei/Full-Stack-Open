@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 import ContactForm from './components/ContactForm.jsx'
-
+import personsService from './services/persons.js'
+import ShowContacts from './components/ShowContacts.jsx'
 
 const Filter = ({filter, setFilter}) => {
   const handleFilterChange = (event) => {
@@ -10,15 +11,6 @@ const Filter = ({filter, setFilter}) => {
   }
   return (
       <div>Filter shown with: <input value = {filter} onChange = {handleFilterChange}/></div>
-  )
-}
-
-const ShowContacts = ({persons, filter}) => {
-  const namesToShow = persons.filter(person => person.name.toLowerCase().includes(filter.toLowerCase()))
-  return (
-      <ul>
-        {namesToShow.map(person => <li key={person.name}>{person.name} {person.number}</li>)}
-      </ul>
   )
 }
 
@@ -33,7 +25,6 @@ const App = () => {
     axios
       .get('http://localhost:3001/persons')
       .then(response => {
-        console.log('promis fulfilled')
         setPersons(response.data)
       }) 
   }, [])
@@ -47,7 +38,7 @@ const App = () => {
                       newNumber={newNumber} setNewNumber={setNewNumber} 
                       persons={persons} setPersons={setPersons}/>
       <h2>Numbers</h2>
-      <ShowContacts persons={persons} filter={filter}/>
+      <ShowContacts persons={persons} filter={filter} setPersons={setPersons}/>
     </div>
     
   )

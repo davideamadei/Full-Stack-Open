@@ -1,3 +1,5 @@
+import personsService from '../services/persons'
+
 const ContactForm = ({newName, setNewName, newNumber, setNewNumber, persons, setPersons}) => {
   const handleNameChange = (event) => {
     console.log(event.target.value)
@@ -17,14 +19,29 @@ const ContactForm = ({newName, setNewName, newNumber, setNewNumber, persons, set
         name: newName,
         number: newNumber
       }
-      setPersons(persons.concat(nameObject))
-      setNewName('')
-      setNewNumber('')
+
+      personsService
+        .create(nameObject)
+        .then(returnedPerson => {
+          setPersons(persons.concat(returnedPerson))
+          setNewName('')
+          setNewNumber('')
+        }
+      )
     }
-    else{
-      alert(`${newName} is already added to phonebook`)
+    else if (window.confirm(`${newName} is already added to phonebook, replace the old number?`)){
+      const person = persons.find(p => p.name === newName)
+      const changedPerson = {...person, number: newNumber}
+      personsService
+        .update(person.id, changedPerson)
+        .then(returnedPerson => {
+          setPersons(persons.map(p => p.id !== person.id ? p : returnedPerson))
+          setNewName('')
+          setNewNumber('')
+        })
     }
   }
+  
 
   return (
     <form onSubmit = {addName}>
