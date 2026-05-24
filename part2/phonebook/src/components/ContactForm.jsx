@@ -1,6 +1,6 @@
 import personsService from '../services/persons'
 
-const ContactForm = ({newName, setNewName, newNumber, setNewNumber, persons, setPersons}) => {
+const ContactForm = ({newName, setNewName, newNumber, setNewNumber, persons, setPersons, setSuccessMessage, setErrorMessage}) => {
   const handleNameChange = (event) => {
     console.log(event.target.value)
     setNewName(event.target.value)
@@ -24,6 +24,7 @@ const ContactForm = ({newName, setNewName, newNumber, setNewNumber, persons, set
         .create(nameObject)
         .then(returnedPerson => {
           setPersons(persons.concat(returnedPerson))
+          setSuccessMessage(`Added ${returnedPerson.name}`)
           setNewName('')
           setNewNumber('')
         }
@@ -36,10 +37,21 @@ const ContactForm = ({newName, setNewName, newNumber, setNewNumber, persons, set
         .update(person.id, changedPerson)
         .then(returnedPerson => {
           setPersons(persons.map(p => p.id !== person.id ? p : returnedPerson))
+          setSuccessMessage(`Updated ${returnedPerson.name}'s number`)
           setNewName('')
           setNewNumber('')
         })
+        .catch(error => {
+          setErrorMessage(`Information of ${person.name} has already been removed from the server`)
+          setTimeout(() => {
+            setErrorMessage(null)
+          }, 3000)
+          setPersons(persons.filter(contact => contact.id !== person.id))
+        })
     }
+    setTimeout(() => {
+      setSuccessMessage(null)
+    }, 3000)
   }
   
 

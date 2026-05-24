@@ -3,6 +3,7 @@ import axios from 'axios'
 import ContactForm from './components/ContactForm.jsx'
 import personsService from './services/persons.js'
 import ShowContacts from './components/ShowContacts.jsx'
+import Notification from './components/Notification.jsx'
 
 const Filter = ({filter, setFilter}) => {
   const handleFilterChange = (event) => {
@@ -19,6 +20,8 @@ const App = () => {
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [filter, setFilter] = useState('')
+  const [successMessage, setSuccessMessage] = useState(null)
+  const [errorMessage, setErrorMessage] = useState(null)
 
   useEffect(() => {
     console.log('effect')
@@ -34,11 +37,15 @@ const App = () => {
       <h1>Phonebook</h1>
       <Filter filter={filter} setFilter={setFilter}/>
       <h2>Add a new contact</h2>
+      <Notification message={successMessage} isError={false}/>
+      <Notification message={errorMessage} isError={true}/>
       <ContactForm newName={newName} setNewName={setNewName}
                       newNumber={newNumber} setNewNumber={setNewNumber} 
-                      persons={persons} setPersons={setPersons}/>
+                      persons={persons} setPersons={setPersons}
+                      setSuccessMessage={setSuccessMessage} setErrorMessage={setErrorMessage}
+                      />
       <h2>Numbers</h2>
-      <ShowContacts persons={persons} filter={filter} setPersons={setPersons}/>
+      <ShowContacts persons={persons} filter={filter} setPersons={setPersons} setErrorMessage={setErrorMessage}/>
     </div>
     
   )

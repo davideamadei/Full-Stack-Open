@@ -1,6 +1,6 @@
 import personsService from '../services/persons'
 
-const ShowContacts = ({persons, filter, setPersons}) => {
+const ShowContacts = ({persons, filter, setPersons, setErrorMessage}) => {
   const deleteContact = (id) => {
     if (window.confirm('Delete this contact?:')) {
       console.log('deleting', id)
@@ -8,6 +8,14 @@ const ShowContacts = ({persons, filter, setPersons}) => {
         .remove(id)
         .then(removedContact => {
           setPersons(persons.filter(contact => contact.id !== removedContact.id))
+        })
+        .catch(error => {
+          const person = persons.find(p => p.id === id)
+          setErrorMessage(`Error deleting contact: ${error.message}`)
+          setTimeout(() => {
+            setErrorMessage(null)
+          }, 3000)
+          setPersons(persons.filter(p => p.id !== id))
         })
     }
   }
