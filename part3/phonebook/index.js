@@ -1,13 +1,16 @@
 const express = require('express')
 const morgan = require('morgan')
 const app = express()
-
+const cors = require('cors')
 morgan.token('contact', (req, res) => {
     if (req.method === 'POST') {
         return JSON.stringify(req.body)
     }
     return ''
 })
+
+
+app.use(cors())
 
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :contact'))
 app.use(express.json())
@@ -36,11 +39,12 @@ let persons = [
 ]
 
 
-app.get('/api/persons', (request, response) => {
-    response.json(persons)
+app.get('/persons', (request, response) => {
+    response.json({'data': persons})
+    response.status(200).end()
 })
 
-app.get('/api/persons/:id', (request, response) => {
+app.get('/persons/:id', (request, response) => {
     const id = request.params.id
     const person = persons.find(person => person.id === id)
     if (person) {
@@ -50,8 +54,8 @@ app.get('/api/persons/:id', (request, response) => {
     }
 })
 
-app.post('/api/persons', (request, response) => {
-    const id = Math.floor(Math.random() * (10 ** 10))
+app.post('/persons', (request, response) => {
+    const id = "" +Math.floor(Math.random() * (10 ** 10))
     const body = request.body
 
     if (!body.name || !body.number) {
@@ -76,9 +80,10 @@ app.post('/api/persons', (request, response) => {
     response.json(person)
 })
 
-app.delete('/api/persons/:id', (request, response) => {
+app.delete('/persons/:id', (request, response) => {
     const id = request.params.id
     persons = persons.filter(person => person.id !== id)
+    response.json({id: id})
     response.status(204).end()
 })
 
