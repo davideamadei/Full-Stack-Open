@@ -7,7 +7,7 @@ const ShowContacts = ({persons, filter, setPersons, setErrorMessage}) => {
       personsService
         .remove(id)
         .then(removedContact => {
-          setPersons(persons.filter(contact => contact.id !== removedContact.id))
+          setPersons(persons.filter(contact => contact.id !== id))
         })
         .catch(error => {
           const person = persons.find(p => p.id === id)
@@ -24,7 +24,7 @@ const ShowContacts = ({persons, filter, setPersons, setErrorMessage}) => {
   return (
       <ul>
         {namesToShow.map(person => 
-        <li key={person.name}>
+        <li key={person.id}>
           {person.name} {person.number} <button onClick={() => deleteContact(person.id)}>delete</button>
         </li>
       )}
