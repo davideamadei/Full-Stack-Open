@@ -38,15 +38,9 @@ app.get('/persons/:id', (request, response, next) => {
     .catch(error => next(error))
 })
 
-app.post('/persons', (request, response) => {
+app.post('/persons', (request, response, next) => {
     const id = "" +Math.floor(Math.random() * (10 ** 10))
     const body = request.body
-
-    if (!body.name || !body.number) {
-        return response.status(400).json({ 
-            error: 'contact data missing' 
-        })
-    }
 
     const contact = new Contact({
         name : body.name,
@@ -56,7 +50,7 @@ app.post('/persons', (request, response) => {
     contact.save().then(result => {
         response.json(result)
     })
-    
+    .catch(error => next(error))
 })
 
 app.put('/persons/:id', (request, response, next) => {
@@ -73,6 +67,7 @@ app.put('/persons/:id', (request, response, next) => {
         .then(updatedContact => {
             response.json(updatedContact)
         })
+        .catch(error => next(error))
     })
     .catch(error => next(error))
 })
@@ -102,6 +97,12 @@ const errorHandler = (error, request, response, next) => {
   if (error.name === 'CastError') {
     return response.status(400).send({ error: 'malformatted id' })
   } 
+  else if (error.name === 'ValidationError') {
+    return response.status(400).json({ error: error.message })
+  }
+  else {
+    return response.status(400).json({ error: error.message })
+  }
 
   next(error)
 }
