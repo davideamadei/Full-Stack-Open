@@ -5,7 +5,6 @@ if (process.argv.length < 3) {
   console.log('give password as argument')
   process.exit(1)
 }
-const password = process.argv[2]
 
 const url = process.env.MONGODB_URI
 
@@ -20,28 +19,28 @@ const contactSchema = new mongoose.Schema({
 
 const Contact = mongoose.model('Contact', contactSchema)
 
-if (process.argv.length == 3) {
-    console.log('phonebook:')
-    Contact.find({}).then(result => {
-        result.forEach(contact => {
-            console.log(contact.name, contact.number)
-        })
-        mongoose.connection.close()
+if (process.argv.length === 3) {
+  console.log('phonebook:')
+  Contact.find({}).then(result => {
+    result.forEach(contact => {
+      console.log(contact.name, contact.number)
     })
+    mongoose.connection.close()
+  })
 }
 
-else if (process.argv.length != 5) {
-    console.log('invalid number of arguments')
-    mongoose.connection.close()
+else if (process.argv.length !== 5) {
+  console.log('invalid number of arguments')
+  mongoose.connection.close()
 }
 
 else {
-    const contact = new Contact({
-        name: process.argv[3],
-        number: process.argv[4]
-    })
-    contact.save().then(result => {
-        console.log('added', contact.name, 'number', contact.number, 'to phonebook')
-        mongoose.connection.close()
-    })
+  const contact = new Contact({
+    name: process.argv[3],
+    number: process.argv[4]
+  })
+  contact.save().then(() => {
+    console.log('added', contact.name, 'number', contact.number, 'to phonebook')
+    mongoose.connection.close()
+  })
 }
