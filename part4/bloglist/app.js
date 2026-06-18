@@ -18,7 +18,8 @@ mongoose.connect(mongoUrl, { family: 4 })
   })
 
 app.use(express.json())
-app.use(morgan('tiny'))
+
+process.env.NODE_ENV !== 'test' ? app.use(morgan('tiny')) : null
 
 app.use('/api/blogs', blogsRouter)
 
