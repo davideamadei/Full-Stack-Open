@@ -88,7 +88,7 @@ describe('when there are some blogs aready saved', () => {
     })
 
 
-    test('missing likes they are defaulted to 0', async () => {
+    test('missing url or title fails with 400', async () => {
       const newBlogMissingUrl = {
         title: 'First class tests',
         author: 'Robert C. Martin'
