@@ -3,10 +3,14 @@ const morgan = require('morgan')
 const express = require('express')
 const config = require('./utils/config')
 const middleware = require('./utils/middleware')
+
 const blogsRouter = require('./controllers/blogs')
+const usersRouter = require('./controllers/users')
+
 const logger = require('./utils/logger')
 
 const app = express()
+app.use(express.json())
 
 const mongoUrl = config.MONGODB_URI
 mongoose.connect(mongoUrl, { family: 4 })
@@ -17,11 +21,11 @@ mongoose.connect(mongoUrl, { family: 4 })
     logger.error('error connecting to MongoDB:', error.message)
   })
 
-app.use(express.json())
 
 process.env.NODE_ENV !== 'test' ? app.use(morgan('tiny')) : null
 
 app.use('/api/blogs', blogsRouter)
+app.use('/api/users', usersRouter)
 
 app.use(middleware.errorHandler)
 app.use(middleware.unknownEndpoint)

@@ -6,12 +6,22 @@ const app = require('../app')
 
 const helper = require('./test_helper')
 const Blog = require('../models/blog')
+const User = require('../models/user')
 
 const api = supertest(app)
 
 describe('when there are some blogs aready saved', () => {
+
   beforeEach(async () => {
+    await User.deleteMany({})
     await Blog.deleteMany({})
+
+    await User.insertMany(helper.initialUsers)
+
+    const initialBlogs = helper.initialBlogs
+    const users = await User.find({})
+    const userId = users[0].id.toString()
+    initialBlogs.forEach(blog => blog.user = userId)
     await Blog.insertMany(helper.initialBlogs)
   })
 
@@ -24,7 +34,6 @@ describe('when there are some blogs aready saved', () => {
 
   test('all blogs are retrieved', async () => {
     const response = await api.get('/api/blogs')
-
     assert.strictEqual(response.body.length, helper.initialBlogs.length)
   })
 
@@ -40,7 +49,8 @@ describe('when there are some blogs aready saved', () => {
         title: 'First class tests',
         author: 'Robert C. Martin',
         url: 'http://blog.cleancoder.com/uncle-bob/2017/05/05/TestDefinitions.html',
-        likes: 10
+        likes: 10,
+        userId: await helper.getUserId()
       }
       await api
         .post('/api/blogs')
@@ -66,7 +76,8 @@ describe('when there are some blogs aready saved', () => {
       const newBlogMissingLikes = {
         title: 'First class tests',
         author: 'Robert C. Martin',
-        url: 'http://blog.cleancoder.com/uncle-bob/2017/05/05/TestDefinitions.html'
+        url: 'http://blog.cleancoder.com/uncle-bob/2017/05/05/TestDefinitions.html',
+        userId: await helper.getUserId()
       }
       await api
         .post('/api/blogs')
@@ -91,7 +102,8 @@ describe('when there are some blogs aready saved', () => {
     test('missing url or title fails with 400', async () => {
       const newBlogMissingUrl = {
         title: 'First class tests',
-        author: 'Robert C. Martin'
+        author: 'Robert C. Martin',
+        userId: await helper.getUserId()
       }
       await api
         .post('/api/blogs')
@@ -100,7 +112,8 @@ describe('when there are some blogs aready saved', () => {
 
       const newBlogMissingTitle = {
         author: 'Robert C. Martin',
-        url: 'http://blog.cleancoder.com/uncle-bob/2017/05/05/TestDefinitions.html'
+        url: 'http://blog.cleancoder.com/uncle-bob/2017/05/05/TestDefinitions.html',
+        userId: await helper.getUserId()
       }
       await api
         .post('/api/blogs')
