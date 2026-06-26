@@ -96,30 +96,32 @@ describe('When there are already some users saved', () => {
   })
 
   test('Saving a new blog creates proper references between user and blog', async () => {
-    const users = await helper.usersInDb()
+    const user = { username:'paperino', password:'password' }
+    const userResponse = await api
+      .post('/api/users')
+      .send(user)
+      .expect(201)
+      .expect('Content-Type', /application\/json/)
+
+    const authResponse = await api
+      .post('/api/login')
+      .send(user)
+      .expect(200)
+      .expect('Content-Type', /application\/json/)
+
     const blog = helper.initialBlogs[0]
-    blog.userId = users[0].id
+
     const response = await api
       .post('/api/blogs')
       .send(blog)
+      .set('Authorization', `Bearer ${authResponse.body.token}`)
       .expect(201)
       .expect('Content-Type', /application\/json/)
-    const usersAfter = await helper.usersInDb()
-    assert(usersAfter.find(user => {
-      if (user.id === blog.userId && user.blogs.length === users[0].blogs.length + 1) {
-        return true
-      }
-      return false
-    }))
-    assert(usersAfter.find(user => {
-      if (user.id === blog.userId){
-        const blogs = user.blogs.map(blog => blog.toString())
-        if (blogs.includes(response.body.id)) {
-          return true
-        }
-      }
-      return false
-    }))
+
+    const userAfter = await User.findById(userResponse.body.id)
+    assert(userResponse.body.blogs.length + 1 === userAfter.blogs.length)
+    const blogs = userAfter.blogs.map(blog => blog.toString())
+    assert(blogs.includes(response.body.id))
   })
 
 })

@@ -11,17 +11,27 @@ const User = require('../models/user')
 const api = supertest(app)
 
 describe('when there are some blogs aready saved', () => {
+  const addUserAndGetToken =  async user => {
+    await api
+      .post('/api/users')
+      .send(user)
+      .expect(201)
+      .expect('Content-Type', /application\/json/)
+
+    const authResponse = await api
+      .post('/api/login')
+      .send(user)
+      .expect(200)
+      .expect('Content-Type', /application\/json/)
+
+    return authResponse
+  }
+
 
   beforeEach(async () => {
     await User.deleteMany({})
     await Blog.deleteMany({})
 
-    await User.insertMany(helper.initialUsers)
-
-    const initialBlogs = helper.initialBlogs
-    const users = await User.find({})
-    const userId = users[0].id.toString()
-    initialBlogs.forEach(blog => blog.user = userId)
     await Blog.insertMany(helper.initialBlogs)
   })
 
@@ -45,26 +55,29 @@ describe('when there are some blogs aready saved', () => {
 
   describe('adding a blog', () => {
     test('it is saved correctly', async () => {
-      const newBlog = {
+
+      const authResponse = await addUserAndGetToken({ username: 'davide', password: 'password' })
+      const request = {
         title: 'First class tests',
         author: 'Robert C. Martin',
         url: 'http://blog.cleancoder.com/uncle-bob/2017/05/05/TestDefinitions.html',
         likes: 10,
-        userId: await helper.getUserId()
       }
+
       await api
         .post('/api/blogs')
-        .send(newBlog)
+        .send(request)
+        .set('Authorization', `Bearer ${authResponse.body.token}`)
         .expect(201)
         .expect('Content-Type', /application\/json/)
 
       const blogsAfter = await helper.blogsInDb()
       assert.strictEqual(blogsAfter.length, helper.initialBlogs.length + 1)
       assert(blogsAfter.find(blog => {
-        if (blog.title === newBlog.title  &&
-          blog.author === newBlog.author &&
-          blog.url === newBlog.url &&
-          blog.likes === newBlog.likes)
+        if (blog.title === request.title  &&
+          blog.author === request.author &&
+          blog.url === request.url &&
+          blog.likes === request.likes)
         {
           return true
         }
@@ -73,15 +86,16 @@ describe('when there are some blogs aready saved', () => {
     })
 
     test('missing likes they are defaulted to 0', async () => {
+      const authResponse = await addUserAndGetToken({ username: 'davide', password: 'password' })
       const newBlogMissingLikes = {
         title: 'First class tests',
         author: 'Robert C. Martin',
         url: 'http://blog.cleancoder.com/uncle-bob/2017/05/05/TestDefinitions.html',
-        userId: await helper.getUserId()
       }
       await api
         .post('/api/blogs')
         .send(newBlogMissingLikes)
+        .set('Authorization', `Bearer ${authResponse.body.token}`)
         .expect(201)
         .expect('Content-Type', /application\/json/)
 
@@ -100,53 +114,83 @@ describe('when there are some blogs aready saved', () => {
 
 
     test('missing url or title fails with 400', async () => {
+      const authResponse = await addUserAndGetToken({ username: 'davide', password: 'password' })
       const newBlogMissingUrl = {
         title: 'First class tests',
         author: 'Robert C. Martin',
-        userId: await helper.getUserId()
       }
       await api
         .post('/api/blogs')
         .send(newBlogMissingUrl)
+        .set('Authorization', `Bearer ${authResponse.body.token}`)
         .expect(400)
 
       const newBlogMissingTitle = {
         author: 'Robert C. Martin',
         url: 'http://blog.cleancoder.com/uncle-bob/2017/05/05/TestDefinitions.html',
-        userId: await helper.getUserId()
       }
       await api
         .post('/api/blogs')
         .send(newBlogMissingTitle)
+        .set('Authorization', `Bearer ${authResponse.body.token}`)
         .expect(400)
     })
   })
 
   describe('deleting a blog', () => {
     test('succeeds with 204 when it is present', async () => {
-      const blogsBefore = await helper.blogsInDb()
-      const blogToDelete = blogsBefore[0]
+      const authResponse = await addUserAndGetToken({ username: 'davide', password: 'password' })
+      const newBlog = {
+        title: 'First class tests',
+        author: 'Robert C. Martin',
+        url: 'http://blog.cleancoder.com/uncle-bob/2017/05/05/TestDefinitions.html',
+        likes: 10,
+      }
 
+      const blogToDelete = await api
+        .post('/api/blogs')
+        .send(newBlog)
+        .set('Authorization', `Bearer ${authResponse.body.token}`)
+        .expect(201)
+        .expect('Content-Type', /application\/json/)
       await api
-        .delete(`/api/blogs/${blogToDelete.id}`)
+        .delete(`/api/blogs/${blogToDelete.body.id}`)
+        .set('Authorization', `Bearer ${authResponse.body.token}`)
         .expect(204)
 
       const blogsAfter = await helper.blogsInDb()
       const blogsIds = blogsAfter.map(blog => blog.id)
       assert(! blogsIds.includes(blogToDelete.id))
-      assert(blogsAfter.length === blogsBefore.length - 1)
+      assert(blogsAfter.length === helper.initialBlogs.length)
+    })
+
+    test('fails with 401 when token is missing', async () => {
+      const newBlog = {
+        title: 'First class tests',
+        author: 'Robert C. Martin',
+        url: 'http://blog.cleancoder.com/uncle-bob/2017/05/05/TestDefinitions.html',
+        likes: 10,
+      }
+
+      await api
+        .post('/api/blogs')
+        .send(newBlog)
+        .expect(401)
     })
 
     test('fails with 404 when it is not present', async () => {
+      const authResponse = await addUserAndGetToken({ username: 'davide', password: 'password' })
       const nonExistingId = await helper.nonExistingId()
       await api
         .delete(`/api/blogs/${nonExistingId}`)
+        .set('Authorization', `Bearer ${authResponse.body.token}`)
         .expect(404)
     })
   })
 
   describe('updating the number of likes in a blog', () => {
     test('succeeds with 204 when it is present', async () => {
+      const authResponse = await addUserAndGetToken({ username: 'davide', password: 'password' })
       const blogs = await helper.blogsInDb()
       const blogToUpdate = blogs[0]
 
@@ -155,6 +199,7 @@ describe('when there are some blogs aready saved', () => {
       await api
         .put(`/api/blogs/${blogToUpdate.id}`)
         .send(blogToUpdate)
+        .set('Authorization', `Bearer ${authResponse.body.token}`)
         .expect(200)
 
       const blogsAfter = await helper.blogsInDb()
@@ -167,12 +212,14 @@ describe('when there are some blogs aready saved', () => {
     })
 
     test('fails with 404 when it is not present', async () => {
+      const authResponse = await addUserAndGetToken({ username: 'davide', password: 'password' })
       const nonExistingId = await helper.nonExistingId()
       const blogs = await helper.blogsInDb()
 
       await api
         .put(`/api/blogs/${nonExistingId}`)
         .send(blogs[0])
+        .set('Authorization', `Bearer ${authResponse.body.token}`)
         .expect(404)
     })
   })
