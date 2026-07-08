@@ -1,48 +1,15 @@
 import { useState } from 'react'
-import blogService from '../services/blogs'
 
-const CreateBlogForm = ({ setUser, blogs, setBlogs, setSuccessMessage, setErrorMessage }) => {
+const CreateBlogForm = ({ handleNewBlog }) => {
   const [title, setTitle] = useState('')
   const [author, setAuthor] = useState('')
   const [url, setUrl] = useState('')
 
-  const handleNewBlog = async event => {
-    event.preventDefault(console.log('creating new blog'))
-    try{
-      const newBlog = {
-        'title': title,
-        'author': author,
-        'url': url
-      }
-      console.log(newBlog)
-      const savedBlog = await blogService.createNew(newBlog)
-      console.log(savedBlog)
-      setSuccessMessage(`The blog ${title} by ${author} was added`)
-      setTimeout(() => setSuccessMessage(null), 5000)
-      setTitle('')
-      setAuthor('')
-      setUrl('')
-      setBlogs(blogs.concat(savedBlog))
-    }
-    catch(error){
-      if (error.response){
-        if (error.response.data.error.includes('token expired')){
-          setUser(null)
-          window.localStorage.clear()
-          setErrorMessage('Session expired, please log in again')
-          setTimeout(() => setErrorMessage(null), 5000)
-          return
-        }
-      }
-      setErrorMessage('Failed to create new blog')
-      setTimeout(() => setErrorMessage(null), 5000)
-    }
-  }
 
   return (
     <div>
       <h2>Create new blog</h2>
-      <form onSubmit={handleNewBlog}>
+      <form onSubmit={(e) => handleNewBlog(e, title, setTitle, author, setAuthor, url, setUrl)}>
         <div>
           <label>
                 Title

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Blog from './components/Blog'
 import LoginForm from './components/LoginForm'
 import CreateBlogForm from './components/CreateBlogForm'
@@ -52,6 +52,64 @@ const App = () => {
     }
   }
 
+  const handleLike = async (blog) => {
+    const updatedBlog = { ...blog, likes: blog.likes + 1 }
+    updatedBlog.user = blog.user.id
+    const response = await blogService.update(updatedBlog)
+    setBlogs(blogs.map(b => b.id === updatedBlog.id ? response : b).sort((a, b) => b.likes - a.likes))
+  }
+
+  const handleDelete = async (blog) => {
+    if(window.confirm(`Are you sure you want to remove ${blog.title} by ${blog.author}?`)){
+      try{
+        await blogService.deleteBlog(blog.id)
+        setBlogs(blogs.filter(b => b.id !== blog.id))
+      } catch (error){
+        if (error.response) {
+          console.log(error.response.data, error.response.status, error.response.headers)
+        }
+      }
+
+    }
+  }
+
+  const blogFormRef = useRef()
+
+  const handleNewBlog = async (event, title, setTitle, author, setAuthor, url, setUrl) => {
+    event.preventDefault(console.log('creating new blog'))
+    try{
+      const newBlog = {
+        'title': title,
+        'author': author,
+        'url': url
+      }
+      console.log(newBlog)
+      const savedBlog = await blogService.createNew(newBlog)
+      console.log(savedBlog)
+      setSuccessMessage(`The blog ${title} by ${author} was added`)
+      setTimeout(() => setSuccessMessage(null), 5000)
+      setTitle('')
+      setAuthor('')
+      setUrl('')
+      setBlogs(blogs.concat(savedBlog))
+      blogFormRef.current.toggleVisibility()
+    }
+    catch(error){
+      if (error.response){
+        if (error.response.data.error.includes('token expired')){
+          setUser(null)
+          window.localStorage.clear()
+          setErrorMessage('Session expired, please log in again')
+          setTimeout(() => setErrorMessage(null), 5000)
+          return
+        }
+      }
+      setErrorMessage('Failed to create new blog')
+      setTimeout(() => setErrorMessage(null), 5000)
+    }
+
+  }
+
   const logout = (message, setMessage) => {
     setUser(null)
     window.localStorage.clear()
@@ -76,15 +134,13 @@ const App = () => {
       <div>
         <p>{user.name ? user.name : user.username} is logged in</p>
         <button onClick={() => logout('Logged out', setSuccessMessage)}>Logout</button>
-        <Togglable showButtonLabel='Create new blog' hideButtonLabel='Cancel'>
-          <CreateBlogForm
-            user={user} blogs={blogs} setBlogs={setBlogs}
-            setSuccessMessage={setSuccessMessage} setErrorMessage={setErrorMessage}/>
+        <Togglable showButtonLabel='Create new blog' hideButtonLabel='Cancel' ref={blogFormRef}>
+          <CreateBlogForm handleNewBlog={handleNewBlog} />
         </Togglable>
 
         <h2>Blogs</h2>
         {blogs.map(blog =>
-          <Blog key={blog.id} user={user} blog={blog} blogs={blogs} setBlogs={setBlogs} />
+          <Blog key={blog.id} user={user} blog={blog} handleLike={handleLike} handleDelete={handleDelete} />
         )}
 
       </div>
