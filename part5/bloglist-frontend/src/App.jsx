@@ -75,7 +75,7 @@ const App = () => {
 
   const blogFormRef = useRef()
 
-  const handleNewBlog = async (event, title, setTitle, author, setAuthor, url, setUrl) => {
+  const handleNewBlog = async (event, title, author, url) => {
     event.preventDefault(console.log('creating new blog'))
     try{
       const newBlog = {
@@ -88,11 +88,10 @@ const App = () => {
       console.log(savedBlog)
       setSuccessMessage(`The blog ${title} by ${author} was added`)
       setTimeout(() => setSuccessMessage(null), 5000)
-      setTitle('')
-      setAuthor('')
-      setUrl('')
       setBlogs(blogs.concat(savedBlog))
-      blogFormRef.current.toggleVisibility()
+      if (blogFormRef.current) {
+        blogFormRef.current.toggleVisibility()
+      }
     }
     catch(error){
       if (error.response){
@@ -104,6 +103,7 @@ const App = () => {
           return
         }
       }
+      console.log(blogFormRef.current)
       setErrorMessage('Failed to create new blog')
       setTimeout(() => setErrorMessage(null), 5000)
     }
@@ -113,9 +113,6 @@ const App = () => {
   const logout = (message, setMessage) => {
     setUser(null)
     window.localStorage.clear()
-    // setTitle('')
-    // setAuthor('')
-    // setUrl('')
     setMessage(message)
     setTimeout(() => setMessage(null), 5000)
   }

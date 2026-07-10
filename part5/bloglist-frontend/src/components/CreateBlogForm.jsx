@@ -9,7 +9,7 @@ const CreateBlogForm = ({ handleNewBlog }) => {
   return (
     <div>
       <h2>Create new blog</h2>
-      <form onSubmit={(e) => handleNewBlog(e, title, setTitle, author, setAuthor, url, setUrl)}>
+      <form onSubmit={(e) => handleNewBlog(e, title, author, url)}>
         <div>
           <label>
                 Title

@@ -13,16 +13,14 @@ const Blog = ({ blog, user, handleLike, handleDelete }) => {
 
 
   return (
-    <div style={blogStyle}>
-      <div>
-        {blog.title} {blog.author}
-        <button onClick={() => setVisible(!visible)}>{visible ? 'Hide' : 'View'}</button>
-        <div className='extra-info'style={{ display: visible ? '' : 'none' }}>
-          <a href={blog.url}>{blog.url}</a><br/>
-          {blog.likes} likes <button onClick={() => handleLike(blog)}>Like</button><br/>
-          {blog.user ? blog.user.name : null}<br/>
-          <button style={{ display: blog.user.username === user.username ? '' : 'none' }} onClick={() => handleDelete(blog)}>Remove</button>
-        </div>
+    <div className='blog' style={blogStyle}>
+      {blog.title} {blog.author}
+      <button onClick={() => setVisible(!visible)}>{visible ? 'Hide' : 'View'}</button>
+      <div className='extra-info'style={{ display: visible ? '' : 'none' }}>
+        <a href={blog.url}>{blog.url}</a><br/>
+          Likes: {blog.likes} <button onClick={() => handleLike(blog)}>Like</button><br/>
+        {blog.user ? blog.user.name : null}<br/>
+        <button style={{ display: blog.user.username === user.username ? '' : 'none' }} onClick={() => handleDelete(blog)}>Remove</button>
       </div>
     </div>
   )
