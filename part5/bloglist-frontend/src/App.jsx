@@ -1,9 +1,17 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
+import {
+  BrowserRouter as Router,
+  Routes, Route, Link,
+  useNavigate, useMatch
+} from 'react-router-dom'
+
 import Blog from './components/Blog'
+import BlogList from './components/BlogList'
 import LoginForm from './components/LoginForm'
 import CreateBlogForm from './components/CreateBlogForm'
 import Notification from './components/Notification'
 import Togglable from './components/Togglable'
+
 import blogService from './services/blogs'
 import loginService from './services/login'
 
@@ -13,9 +21,13 @@ const App = () => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
 
-
   const [errorMessage, setErrorMessage] = useState(null)
   const [successMessage, setSuccessMessage] = useState(null)
+
+  const navigate = useNavigate()
+
+  const match = useMatch('/blogs/:id')
+  const blog = match ? blogs.find(blog => blog.id === match.params.id) : null
 
   useEffect(() => {
     const fetchBlogs = async () => {
@@ -45,6 +57,7 @@ const App = () => {
       setPassword('')
       setSuccessMessage(`Successfully logged in as ${user.name ? user.name : user.username}`)
       setTimeout(() => setSuccessMessage(null), 5000)
+      navigate('/')
     }
     catch{
       setErrorMessage('Wrong username or password')
@@ -53,6 +66,10 @@ const App = () => {
   }
 
   const handleLike = async (blog) => {
+    if (!user){
+      setErrorMessage('You must be logged in to like posts')
+      setTimeout(() => setErrorMessage(null), 5000)
+    }
     const updatedBlog = { ...blog, likes: blog.likes + 1 }
     updatedBlog.user = blog.user.id
     const response = await blogService.update(updatedBlog)
@@ -64,6 +81,7 @@ const App = () => {
       try{
         await blogService.deleteBlog(blog.id)
         setBlogs(blogs.filter(b => b.id !== blog.id))
+        navigate('/')
       } catch (error){
         if (error.response) {
           console.log(error.response.data, error.response.status, error.response.headers)
@@ -73,7 +91,7 @@ const App = () => {
     }
   }
 
-  const blogFormRef = useRef()
+  // const blogFormRef = useRef()
 
   const handleNewBlog = async (event, title, author, url) => {
     event.preventDefault(console.log('creating new blog'))
@@ -89,9 +107,10 @@ const App = () => {
       setSuccessMessage(`The blog ${title} by ${author} was added`)
       setTimeout(() => setSuccessMessage(null), 5000)
       setBlogs(blogs.concat(savedBlog))
-      if (blogFormRef.current) {
-        blogFormRef.current.toggleVisibility()
-      }
+      navigate('/')
+      // if (blogFormRef.current) {
+      //   blogFormRef.current.toggleVisibility()
+      // }
     }
     catch(error){
       if (error.response){
@@ -103,7 +122,6 @@ const App = () => {
           return
         }
       }
-      console.log(blogFormRef.current)
       setErrorMessage('Failed to create new blog')
       setTimeout(() => setErrorMessage(null), 5000)
     }
@@ -115,33 +133,38 @@ const App = () => {
     window.localStorage.clear()
     setMessage(message)
     setTimeout(() => setMessage(null), 5000)
+    navigate('/')
   }
 
   return (
     <div>
-      <Notification message={errorMessage} setMessage={setErrorMessage} isError={true}/>
-      <Notification message={successMessage} setMessage={setSuccessMessage} isError={false}/>
-      <LoginForm
-        handleLogin={handleLogin}user={user}
-        username={username} setUsername={setUsername}
-        password={password} setPassword={setPassword}
-      />
-
-      {user &&
       <div>
-        <p>{user.name ? user.name : user.username} is logged in</p>
+        <Link to="/">Home</Link>|
+        {user && <Link to="/new_blog">New Blog</Link>}{user && '|'}
+
+        {!user && (<Link to="/login">Login</Link>)}
+        {user && (<button onClick={() => logout('Logged out', setSuccessMessage)}>Logout</button>)}
+      </div>
+      <div>
+        <Notification message={errorMessage} setMessage={setErrorMessage} isError={true}/>
+        <Notification message={successMessage} setMessage={setSuccessMessage} isError={false}/>
+        <Routes>
+          <Route path="/" element={<BlogList blogs={blogs}/>} />
+          <Route path="/login" element={<LoginForm
+            handleLogin={handleLogin}
+            username={username} setUsername={setUsername}
+            password={password} setPassword={setPassword}
+          />}/>
+          <Route path="/blogs/:id" element={<Blog blog={blog} handleLike={handleLike} handleDelete={handleDelete} user={user} />} />
+          <Route path="/new_blog" element={<CreateBlogForm handleNewBlog={handleNewBlog}/>}/>
+        </Routes>
+      </div>
+
+      {/* <p>{user.name ? user.name : user.username} is logged in</p>
         <button onClick={() => logout('Logged out', setSuccessMessage)}>Logout</button>
         <Togglable showButtonLabel='Create new blog' hideButtonLabel='Cancel' ref={blogFormRef}>
           <CreateBlogForm handleNewBlog={handleNewBlog} />
-        </Togglable>
-
-        <h2>Blogs</h2>
-        {blogs.map(blog =>
-          <Blog key={blog.id} user={user} blog={blog} handleLike={handleLike} handleDelete={handleDelete} />
-        )}
-
-      </div>
-      }
+        </Togglable> */}
     </div>
   )
 }

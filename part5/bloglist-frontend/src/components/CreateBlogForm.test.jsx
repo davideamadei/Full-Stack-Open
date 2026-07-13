@@ -19,6 +19,6 @@ test('calls the event handler with the right details when a new blog is created'
 
   expect(mockHandler.mock.calls).toHaveLength(1)
   expect(mockHandler.mock.calls[0][1]).toBe('Test Blog Title')
-  expect(mockHandler.mock.calls[0][3]).toBe('Test Author')
-  expect(mockHandler.mock.calls[0][5]).toBe('http://test-url.com')
+  expect(mockHandler.mock.calls[0][2]).toBe('Test Author')
+  expect(mockHandler.mock.calls[0][3]).toBe('http://test-url.com')
 })
