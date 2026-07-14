@@ -4,10 +4,10 @@ import Blog from './Blog'
 const BlogList = ({ blogs }) => {
   return(
     <div>
-      <h2>Blogs</h2>
+      <h1>Blogs</h1>
       <ul>
         {blogs.map(blog =>
-          <li key={blog.id}><Link to={`/blogs/${blog.id}`}>{blog.title} by {blog.author}<br/></Link></li>
+          <li key={blog.id} style={{ fontSize:20 }}><Link to={`/blogs/${blog.id}`}>{blog.title} by {blog.author}<br/></Link></li>
         )}
       </ul>
     </div>

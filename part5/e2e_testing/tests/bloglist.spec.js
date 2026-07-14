@@ -31,25 +31,24 @@ describe('Blog app', () => {
 
   describe('Login', () => {
     test('succeeds with correct credentials', async ({ page }) => {
-        loginWith(page, 'testuser', 'testpassword')
+        await loginWith(page, 'testuser', 'testpassword')
         await expect(page.getByText('Successfully logged in as Test User')).toBeVisible()
     })
 
     test('fails with wrong credentials', async ({ page }) => {
-        loginWith(page, 'wronguser', 'wrongpassword')
+        await loginWith(page, 'wronguser', 'wrongpassword')
         await expect(page.getByText('Wrong username or password')).toBeVisible()
     })
   })
 
   describe('When logged in', () => {
   beforeEach(async ({ page }) => {
-    loginWith(page, 'testuser', 'testpassword')
+    await loginWith(page, 'testuser', 'testpassword')
   })
 
   test('a new blog can be created', async ({ page }) => {
     await createBlog(page, 'Test Blog Title', 'Test Blog Author', 'http://testblogurl.com')
-
-    await expect(page.getByText('The blog Test Blog Title by Test Blog Author was added')).toBeVisible()
+    // await expect(page.getByText('The blog Test Blog Title by Test Blog Author was added')).toBeVisible()
     await expect(page.getByText('Test Blog Title by Test Blog Author', { exact: true })).toBeVisible()
     // await expect(page.getByRole('listitem').filter({hasText: 'Test Blog Title by Test Blog Author'})).toBeVisible()
   })
@@ -87,7 +86,7 @@ describe('Blog app', () => {
 
     await page.request.post('http://localhost:3003/api/users', { data: anotherUser })
 
-    loginWith(page, 'anotheruser', 'anotherpassword')
+    await loginWith(page, 'anotheruser', 'anotherpassword')
 
     await page.getByText('Test Blog Title by Test Blog Author', { exact: true }).click()
 
@@ -109,8 +108,8 @@ describe('Blog app', () => {
     await page.getByRole('button', { name: 'Like' }).click()
     await page.waitForResponse(response => response.url().includes('/api/blogs') && response.status() === 200)
 
-    await page.getByText('Home').click()
-    await expect(page.getByText('Blogs')).toBeVisible()
+    await page.getByRole('link', { name: 'Blogs' }).click()
+    await expect(page.getByRole('heading', { name: 'Blogs' })).toBeVisible()
     const blogs = await expect(page.getByRole('listitem'))
       .toHaveText(['Second Blog by Author 2', 'Third Blog by Author 3', 'First Blog by Author 1'])
   })

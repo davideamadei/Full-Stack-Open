@@ -1,3 +1,4 @@
+import { Container, AppBar, Toolbar, Button } from '@mui/material'
 import { useState, useEffect } from 'react'
 import {
   BrowserRouter as Router,
@@ -21,8 +22,9 @@ const App = () => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
 
-  const [errorMessage, setErrorMessage] = useState(null)
-  const [successMessage, setSuccessMessage] = useState(null)
+  const [notification, setNotification] = useState(null)
+  // const [errorMessage, setErrorMessage] = useState(null)
+  // const [successMessage, setSuccessMessage] = useState(null)
 
   const navigate = useNavigate()
 
@@ -55,20 +57,25 @@ const App = () => {
       setUser(user)
       setUsername('')
       setPassword('')
-      setSuccessMessage(`Successfully logged in as ${user.name ? user.name : user.username}`)
-      setTimeout(() => setSuccessMessage(null), 5000)
+      setNotification({ text: `Successfully logged in as ${user.name ? user.name : user.username}`, type:'success' })
+      setTimeout(() => setNotification(null),5000)
+      // setSuccessMessage(`Successfully logged in as ${user.name ? user.name : user.username}`)
+      // setTimeout(() => setSuccessMessage(null), 5000)
       navigate('/')
     }
     catch{
-      setErrorMessage('Wrong username or password')
-      setTimeout(() => setErrorMessage(null), 5000)
+      setNotification({ text:'Wrong username or password', type:'error' })
+      setTimeout(() => setNotification(null),5000)
+      // setErrorMessage('Wrong username or password')
+      // setTimeout(() => setErrorMessage(null), 5000)
     }
   }
 
   const handleLike = async (blog) => {
     if (!user){
-      setErrorMessage('You must be logged in to like posts')
-      setTimeout(() => setErrorMessage(null), 5000)
+      setNotification({ text:'You must be logged in to like posts', type:'error' })
+      // setErrorMessage('You must be logged in to like posts')
+      // setTimeout(() => setErrorMessage(null), 5000)
     }
     const updatedBlog = { ...blog, likes: blog.likes + 1 }
     updatedBlog.user = blog.user.id
@@ -104,8 +111,10 @@ const App = () => {
       console.log(newBlog)
       const savedBlog = await blogService.createNew(newBlog)
       console.log(savedBlog)
-      setSuccessMessage(`The blog ${title} by ${author} was added`)
-      setTimeout(() => setSuccessMessage(null), 5000)
+      setNotification({ text: `The blog ${title} by ${author} was added`, type:'success' })
+      setTimeout(() => setNotification(null),5000)
+      // setSuccessMessage(`The blog ${title} by ${author} was added`)
+      // setTimeout(() => setSuccessMessage(null), 5000)
       setBlogs(blogs.concat(savedBlog))
       navigate('/')
       // if (blogFormRef.current) {
@@ -117,55 +126,64 @@ const App = () => {
         if (error.response.data.error.includes('token expired')){
           setUser(null)
           window.localStorage.clear()
-          setErrorMessage('Session expired, please log in again')
-          setTimeout(() => setErrorMessage(null), 5000)
+          setNotification({ text:'Session expired, please log in again', type:'error' })
+          setTimeout(() => setNotification(null),5000)
+          // setErrorMessage('Session expired, please log in again')
+          // setTimeout(() => setErrorMessage(null), 5000)
           return
         }
       }
-      setErrorMessage('Failed to create new blog')
-      setTimeout(() => setErrorMessage(null), 5000)
+      setNotification({ text: 'Failed to create new blog', type:'error' })
+      setTimeout(() => setNotification(null),5000)
+      // setErrorMessage('Failed to create new blog')
+      // setTimeout(() => setErrorMessage(null), 5000)
     }
 
   }
 
-  const logout = (message, setMessage) => {
+  const logout = (notification) => {
     setUser(null)
     window.localStorage.clear()
-    setMessage(message)
-    setTimeout(() => setMessage(null), 5000)
+    setNotification(notification)
+    setTimeout(() => setNotification(null),5000)
+    // setMessage(message)
+    // setTimeout(() => setMessage(null), 5000)
     navigate('/')
   }
 
-  return (
-    <div>
-      <div>
-        <Link to="/">Home</Link>|
-        {user && <Link to="/new_blog">New Blog</Link>}{user && '|'}
+  const buttonStyle = { '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' } }
 
-        {!user && (<Link to="/login">Login</Link>)}
-        {user && (<button onClick={() => logout('Logged out', setSuccessMessage)}>Logout</button>)}
-      </div>
-      <div>
-        <Notification message={errorMessage} setMessage={setErrorMessage} isError={true}/>
-        <Notification message={successMessage} setMessage={setSuccessMessage} isError={false}/>
-        <Routes>
-          <Route path="/" element={<BlogList blogs={blogs}/>} />
-          <Route path="/login" element={<LoginForm
-            handleLogin={handleLogin}
-            username={username} setUsername={setUsername}
-            password={password} setPassword={setPassword}
-          />}/>
-          <Route path="/blogs/:id" element={<Blog blog={blog} handleLike={handleLike} handleDelete={handleDelete} user={user} />} />
-          <Route path="/new_blog" element={<CreateBlogForm handleNewBlog={handleNewBlog}/>}/>
-        </Routes>
-      </div>
+  return (
+    <Container>
+      <AppBar position='static'>
+        <Toolbar>
+          <h2>Blog App</h2>
+          <div style={{ marginLeft:'auto' }}>
+            <Button color='inherit' sx={buttonStyle} component={Link}to="/">Blogs</Button>
+            {user && <Button color='inherit' sx={buttonStyle} component={Link} to="/new_blog">New Blog</Button>}
+            {user && <Button color='inherit' sx={buttonStyle} onClick={() => logout({ text:'User logged out', type:'success' })} >Logout</Button>}
+            {!user && <Button color='inherit' sx={buttonStyle} component={Link} to="/login">Login</Button>}
+          </div>
+        </Toolbar>
+      </AppBar>
+      <Notification notification={notification}/>
+      <Routes>
+        <Route path="/" element={<BlogList blogs={blogs}/>} />
+        <Route path="/login" element={<LoginForm
+          handleLogin={handleLogin}
+          username={username} setUsername={setUsername}
+          password={password} setPassword={setPassword}
+        />}/>
+        <Route path="/blogs/:id" element={<Blog blog={blog} handleLike={handleLike} handleDelete={handleDelete} user={user} />} />
+        <Route path="/new_blog" element={<CreateBlogForm handleNewBlog={handleNewBlog}/>}/>
+      </Routes>
 
       {/* <p>{user.name ? user.name : user.username} is logged in</p>
         <button onClick={() => logout('Logged out', setSuccessMessage)}>Logout</button>
         <Togglable showButtonLabel='Create new blog' hideButtonLabel='Cancel' ref={blogFormRef}>
           <CreateBlogForm handleNewBlog={handleNewBlog} />
         </Togglable> */}
-    </div>
+    </Container>
   )
 }
 

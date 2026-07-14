@@ -1,4 +1,5 @@
 // import { useState } from 'react'
+import { Card, Button, CardContent, CardActions } from '@mui/material'
 
 const Blog = ({ blog, user, handleLike, handleDelete }) => {
   // const [visible, setVisible] = useState(false)
@@ -15,16 +16,26 @@ const Blog = ({ blog, user, handleLike, handleDelete }) => {
     return null
   }
 
+  const textStyle={
+    marginTop:5,
+    marginBottom:5,
+    marginLeft:15
+  }
   return (
 
-    <div className='blog'>
-      <h1>{blog.author}: {blog.title}</h1>
-
-      <p><a href={blog.url}>{blog.url}</a></p>
-      <p>Likes: {blog.likes} {user && <button style={{ display:user?'':'none' }} onClick={() => handleLike(blog)}>Like</button>}</p>
-      {blog.user.name && <p>Added by {blog.user.name}</p>}
-      {user && blog.user.username===user.username && <p><button onClick={() => handleDelete(blog)}>Remove</button></p>}
-    </div>
+    <Card className='blog' raised={true} sx={{ marginTop:5 }}>
+      <CardContent>
+        <h1 style={textStyle}>{blog.title}</h1>
+        <h2 style={{ ...textStyle, color:'grey' }}>by {blog.author}</h2>
+        <p style={textStyle}><a href={blog.url}>{blog.url}</a></p>
+        {blog.user.name && <p style={textStyle}>Added by {blog.user.name}</p>}
+        <p style={{ ...textStyle, fontSize:21 }}>Likes: {blog.likes}</p>
+      </CardContent>
+      <CardActions sx={{ marginLeft:'15px' }}>
+        {user && <Button  variant='outlined' onClick={() => handleLike(blog)}>Like</Button>}
+        {user && blog.user.username===user.username && <p><Button color='error' variant='outlined' onClick={() => handleDelete(blog)}>Remove</Button></p>}
+      </CardActions>
+    </Card>
 
   // <div className='blog' style={blogStyle}>
   //   {blog.title} {blog.author}

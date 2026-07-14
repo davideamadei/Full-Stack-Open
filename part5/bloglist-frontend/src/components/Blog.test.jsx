@@ -26,7 +26,8 @@ const otherUser = {
 
 test('information is displayed with hidden buttons for unauthenticated users', async () => {
   render(<Blog blog={testBlog}/>)
-  expect(screen.getByText('Test Author: Test Blog Title')).toBeDefined()
+  expect(screen.getByText('Test Blog Title')).toBeDefined()
+  expect(screen.getByText('by Test Author')).toBeDefined()
   expect(screen.getByText('http://test-url.com')).toBeDefined()
   expect(screen.getByText('Likes: 5')).toBeDefined()
   expect(screen.getByText('Added by Test User')).toBeDefined()
