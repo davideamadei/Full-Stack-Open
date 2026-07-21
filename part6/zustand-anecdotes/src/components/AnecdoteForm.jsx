@@ -1,23 +1,19 @@
-import { useAnecdoteActions } from "../store"
+import { useAnecdoteActions, useNotificationActions } from "../store"
 
 const AnecdoteForm = () => {
     const {addAnecdote} = useAnecdoteActions()
-
+    const {setNotification} = useNotificationActions()
     const handleNew = e => {
         e.preventDefault()
-        const anecdote = {
-        content: e.target.anecdote.value,
-        id: (100000 * Math.random()),
-        votes: 0
-        }
+        const anecdote = e.target.anecdote.value 
         addAnecdote(anecdote)
-        
+        setNotification(`Added '${anecdote}' to the list`)
         e.target.reset()
     }
 
     return (
         <div>
-            <h2>create new</h2>
+            <h2>Create new</h2>
             <form onSubmit={handleNew}>
                 <div>
                 <input name='anecdote'/>
