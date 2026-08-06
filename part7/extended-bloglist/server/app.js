@@ -1,0 +1,43 @@
+const mongoose = require('mongoose')
+const morgan = require('morgan')
+const express = require('express')
+const config = require('./utils/config')
+const middleware = require('./utils/middleware')
+
+const blogsRouter = require('./controllers/blogs')
+const usersRouter = require('./controllers/users')
+const loginRouter = require('./controllers/login')
+
+const logger = require('./utils/logger')
+
+const app = express()
+app.use(express.json())
+
+const mongoUrl = config.MONGODB_URI
+mongoose
+  .connect(mongoUrl, { family: 4 })
+  .then(() => {
+    logger.info('connected to MongoDB')
+  })
+  .catch((error) => {
+    logger.error('error connecting to MongoDB:', error.message)
+  })
+
+process.env.NODE_ENV !== 'test' ? app.use(morgan('tiny')) : null
+app.use(middleware.tokenExtractor)
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static('../client/dist'))
+}
+app.use('/api/blogs', blogsRouter)
+app.use('/api/users', usersRouter)
+app.use('/api/login', loginRouter)
+
+if (process.env.NODE_ENV === 'test') {
+  const testingRouter = require('./controllers/testing')
+  app.use('/api/testing', testingRouter)
+}
+
+app.use(middleware.errorHandler)
+app.use(middleware.unknownEndpoint)
+
+module.exports = app
