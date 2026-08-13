@@ -1,11 +1,53 @@
 import { useState } from 'react'
 import { TextField, Button } from '@mui/material'
-const CreateBlogForm = ({ handleNewBlog }) => {
+import { useNotificationActions } from '../store/notificationStore'
+import { useBlogActions } from '../store/blogStore'
+import { useUserActions } from '../store/userStore'
+import { useNavigate } from 'react-router-dom'
+
+const CreateBlogForm = () => {
   const [title, setTitle] = useState('')
   const [author, setAuthor] = useState('')
   const [url, setUrl] = useState('')
   const formStyle = {
     marginBottom: 10,
+  }
+
+  const { setNotification } = useNotificationActions()
+  const { addBlog } = useBlogActions()
+  const { logout } = useUserActions()
+  const navigate = useNavigate()
+
+  const handleNewBlog = async (event, title, author, url) => {
+    event.preventDefault(console.log('creating new blog'))
+    try {
+      const newBlog = {
+        title: title,
+        author: author,
+        url: url,
+      }
+      await addBlog(newBlog)
+      setNotification({
+        text: `The blog ${title} by ${author} was added`,
+        type: 'success',
+      })
+      console.log(`Added new blog: ${newBlog}`)
+      navigate('/')
+    } catch (error) {
+      console.error('Error creating new blog:', error)
+      if (error.response) {
+        if (error.response.data.error.includes('token expired')) {
+          logout()
+          setNotification({
+            text: 'Session expired, please log in again',
+            type: 'error',
+          })
+          navigate('/login')
+          return
+        }
+      }
+      setNotification({ text: 'Failed to create new blog', type: 'error' })
+    }
   }
 
   return (

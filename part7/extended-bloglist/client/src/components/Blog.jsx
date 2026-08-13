@@ -1,19 +1,51 @@
 // import { useState } from 'react'
 import { Card, Button, CardContent, CardActions } from '@mui/material'
+import { useNotificationActions } from '../store/notificationStore'
+import { useBlogActions } from '../store/blogStore'
+import { useUser } from '../store/userStore'
+import { useNavigate } from 'react-router-dom'
 
-const Blog = ({ blog, user, handleLike, handleDelete }) => {
-  // const [visible, setVisible] = useState(false)
-
-  // const blogStyle = {
-  //   paddingTop: 10,
-  //   paddingLeft: 2,
-  //   border: 'solid',
-  //   borderWidth: 1,
-  //   marginBottom: 5,
-  // }
+const Blog = ({ blog }) => {
+  const { setNotification } = useNotificationActions()
+  const { updateBlog, deleteBlog } = useBlogActions()
+  const user = useUser()
+  const navigate = useNavigate()
 
   if (!blog) {
     return null
+  }
+
+  const handleLike = async (blog) => {
+    if (!user) {
+      setNotification({
+        text: 'You must be logged in to like posts',
+        type: 'error',
+      })
+    }
+    const updatedBlog = { ...blog, likes: blog.likes + 1 }
+    updatedBlog.user = blog.user.id
+    await updateBlog(updatedBlog)
+  }
+
+  const handleDelete = async (blog) => {
+    if (
+      window.confirm(
+        `Are you sure you want to remove ${blog.title} by ${blog.author}?`
+      )
+    ) {
+      try {
+        await deleteBlog(blog.id)
+        navigate('/')
+      } catch (error) {
+        if (error.response) {
+          console.log(
+            error.response.data,
+            error.response.status,
+            error.response.headers
+          )
+        }
+      }
+    }
   }
 
   const textStyle = {
