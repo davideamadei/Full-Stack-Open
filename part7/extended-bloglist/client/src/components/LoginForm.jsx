@@ -3,10 +3,11 @@ import { useState } from 'react'
 import { useNotificationActions } from '../store/notificationStore'
 import { useUser, useUserActions } from '../store/userStore'
 import { useNavigate } from 'react-router-dom'
+import { useField } from '../hooks'
 
 const LoginForm = () => {
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
+  const usernameField = useField('text')
+  const passwordField = useField('text')
 
   const { setNotification } = useNotificationActions()
   const { login } = useUserActions()
@@ -16,9 +17,7 @@ const LoginForm = () => {
   const handleLogin = async (event) => {
     event.preventDefault(console.log('logging in'))
     try {
-      const user = await login(username, password)
-      setUsername('')
-      setPassword('')
+      const user = await login(usernameField.value, passwordField.value)
       setNotification({
         text: `Successfully logged in as ${user.name ? user.name : user.username}`,
         type: 'success',
@@ -38,9 +37,7 @@ const LoginForm = () => {
           <TextField
             label="username"
             variant="standard"
-            type="text"
-            value={username}
-            onChange={({ target }) => setUsername(target.value)}
+            {...{ ...usernameField, reset: null }}
           />
         </div>
 
@@ -48,9 +45,7 @@ const LoginForm = () => {
           <TextField
             label="password"
             variant="standard"
-            type="text"
-            value={password}
-            onChange={({ target }) => setPassword(target.value)}
+            {...{ ...passwordField, reset: null }}
           />
         </div>
         <br />

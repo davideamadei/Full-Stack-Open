@@ -4,11 +4,12 @@ import { useNotificationActions } from '../store/notificationStore'
 import { useBlogActions } from '../store/blogStore'
 import { useUserActions } from '../store/userStore'
 import { useNavigate } from 'react-router-dom'
+import { useField } from '../hooks'
 
 const CreateBlogForm = () => {
-  const [title, setTitle] = useState('')
-  const [author, setAuthor] = useState('')
-  const [url, setUrl] = useState('')
+  const titleField = useField('text')
+  const authorField = useField('text')
+  const urlField = useField('text')
   const formStyle = {
     marginBottom: 10,
   }
@@ -18,17 +19,17 @@ const CreateBlogForm = () => {
   const { logout } = useUserActions()
   const navigate = useNavigate()
 
-  const handleNewBlog = async (event, title, author, url) => {
+  const handleNewBlog = async (event) => {
     event.preventDefault(console.log('creating new blog'))
     try {
       const newBlog = {
-        title: title,
-        author: author,
-        url: url,
+        title: titleField.value,
+        author: authorField.value,
+        url: urlField.value,
       }
       await addBlog(newBlog)
       setNotification({
-        text: `The blog ${title} by ${author} was added`,
+        text: `The blog ${titleField.value} by ${authorField.value} was added`,
         type: 'success',
       })
       console.log(`Added new blog: ${newBlog}`)
@@ -53,32 +54,26 @@ const CreateBlogForm = () => {
   return (
     <div>
       <h2>Create new blog</h2>
-      <form onSubmit={(e) => handleNewBlog(e, title, author, url)}>
+      <form onSubmit={handleNewBlog}>
         <div>
           <TextField
             style={formStyle}
             label="Title"
-            type="text"
-            value={title}
-            onChange={({ target }) => setTitle(target.value)}
+            {...{ ...titleField, reset: null }}
           />
         </div>
         <div>
           <TextField
             style={formStyle}
             label="Author"
-            type="text"
-            value={author}
-            onChange={({ target }) => setAuthor(target.value)}
+            {...{ ...authorField, reset: null }}
           />
         </div>
         <div>
           <TextField
             style={formStyle}
             label="URL"
-            type="text"
-            value={url}
-            onChange={({ target }) => setUrl(target.value)}
+            {...{ ...urlField, reset: null }}
           />
         </div>
         <Button type="submit" variant="contained">

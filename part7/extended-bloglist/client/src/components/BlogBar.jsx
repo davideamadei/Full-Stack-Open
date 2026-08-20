@@ -1,6 +1,7 @@
 import { AppBar, Toolbar, Button } from '@mui/material'
 import { Link } from 'react-router-dom'
 import { useUser, useUserActions } from '../store/userStore'
+
 const BlogBar = () => {
   const buttonStyle = { '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' } }
   const { logout } = useUserActions()
@@ -12,6 +13,9 @@ const BlogBar = () => {
         <div style={{ marginLeft: 'auto' }}>
           <Button color="inherit" sx={buttonStyle} component={Link} to="/">
             Blogs
+          </Button>
+          <Button color="inherit" sx={buttonStyle} component={Link} to="/users">
+            Users
           </Button>
           {user && (
             <Button
